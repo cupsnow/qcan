@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
 				QSerialPortInfo::availablePorts();
 		for (int i = 0; i < serialPorts.size(); i++) {
 			QSerialPortInfo serialPort = serialPorts.at(i);
-
 			QString msg = serialPort.systemLocation();
 			if (serialPort.isBusy()) {
 				msg += QCoreApplication::translate("main", "(Busy)");
@@ -63,13 +62,22 @@ int main(int argc, char *argv[]) {
             stdOut << msg << endl;
 		}
 
-		QStringList canbusIfceNames = QCanBus::instance()->plugins();
-		QString indent1 = "";
-		for (int i = 0; i < canbusIfceNames.size(); i++) {
-			QString ifceName = canbusIfceNames.at(i);
-            stdOut << indent1 << ifceName << endl;
-
-
+        QStringList canbusPlugins = QCanBus::instance()->plugins();
+        for (int i = 0; i < canbusPlugins.size(); i++) {
+            QString plugin = canbusPlugins.at(i);
+            stdOut << plugin << endl;
+            const QList<QCanBusDeviceInfo> canbusDevs =
+                    QCanBus::instance()->availableDevices(plugin);
+            if (canbusDevs.empty()) continue;
+            for (int j = 0; j < canbusDevs.size(); j++) {
+                QCanBusDeviceInfo canbus = canbusDevs.at(j);
+                QString msg = canbus.name();
+                if (!canbus.description().isEmpty()) msg += ", " + canbus.description();
+                if (canbus.hasFlexibleDataRate()) msg += ", CanFD";
+                if (canbus.isVirtual()) msg += ", Virtual";
+                if (!canbus.serialNumber().isEmpty()) msg += ", SN: " + canbus.serialNumber();
+                stdOut << "  " << msg << endl;
+            }
 
 		}
 
