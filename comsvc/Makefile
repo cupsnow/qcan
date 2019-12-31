@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_SERIALPORT_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_SERIALPORT_LIB -DQT_SERIALBUS_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore -I. -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++
+INCPATH       = -I. -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore -I. -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++
 QMAKE         = /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -39,8 +39,8 @@ COMPRESS      = gzip -9f
 DISTNAME      = comsvc1.0.0
 DISTDIR = /home/joelai/02_dev/qcan/comsvc/.tmp/comsvc1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-rpath,/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib
-LIBS          = $(SUBLIBS) /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib/libQt5SerialPort.so /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib/libQt5Core.so -lpthread   
+LFLAGS        = -Wl,-rpath,/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib -Wl,-rpath-link,/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib
+LIBS          = $(SUBLIBS) /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib/libQt5SerialPort.so /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib/libQt5SerialBus.so /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/lib/libQt5Core.so -lpthread   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -53,10 +53,14 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = main.cpp \
-		SerialPortServer.cpp moc_SerialPortServer.cpp
+		SerialPortServer.cpp \
+		CanbusServer.cpp moc_SerialPortServer.cpp \
+		moc_CanbusServer.cpp
 OBJECTS       = main.o \
 		SerialPortServer.o \
-		moc_SerialPortServer.o
+		CanbusServer.o \
+		moc_SerialPortServer.o \
+		moc_CanbusServer.o
 DIST          = /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spec_pre.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/common/unix.conf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/common/linux.conf \
@@ -233,6 +237,7 @@ DIST          = /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spe
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/qt_config.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/toolchain.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -249,8 +254,10 @@ DIST          = /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spe
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/exceptions.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/yacc.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/lex.prf \
-		comsvc.pro SerialPortServer.h main.cpp \
-		SerialPortServer.cpp
+		comsvc.pro SerialPortServer.h \
+		CanbusServer.h main.cpp \
+		SerialPortServer.cpp \
+		CanbusServer.cpp
 QMAKE_TARGET  = comsvc
 DESTDIR       = 
 TARGET        = comsvc
@@ -438,6 +445,7 @@ Makefile: comsvc.pro /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/qt_config.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/toolchain.prf \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -632,6 +640,7 @@ Makefile: comsvc.pro /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/qt_config.prf:
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++/qmake.conf:
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/exclusive_builds.prf:
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/toolchain.prf:
 /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/default_pre.prf:
@@ -664,8 +673,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents SerialPortServer.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp SerialPortServer.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents SerialPortServer.h CanbusServer.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp SerialPortServer.cpp CanbusServer.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -697,9 +706,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_SerialPortServer.cpp
+compiler_moc_header_make_all: moc_SerialPortServer.cpp moc_CanbusServer.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_SerialPortServer.cpp
+	-$(DEL_FILE) moc_SerialPortServer.cpp moc_CanbusServer.cpp
 moc_SerialPortServer.cpp: SerialPortServer.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/QSerialPort \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/qserialport.h \
@@ -758,7 +767,72 @@ moc_SerialPortServer.cpp: SerialPortServer.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/qserialportglobal.h \
 		moc_predefs.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/moc
-	/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/moc $(DEFINES) --include /home/joelai/02_dev/qcan/comsvc/moc_predefs.h -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++ -I/home/joelai/02_dev/qcan/comsvc -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include SerialPortServer.h -o moc_SerialPortServer.cpp
+	/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/moc $(DEFINES) --include /home/joelai/02_dev/qcan/comsvc/moc_predefs.h -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++ -I/home/joelai/02_dev/qcan/comsvc -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include SerialPortServer.h -o moc_SerialPortServer.cpp
+
+moc_CanbusServer.cpp: CanbusServer.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/QCanBus \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbus.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobject.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qnamespace.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qglobal.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qconfig.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qtcore-config.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsysinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qlogging.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qflags.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_msvc.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qmutex.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qnumeric.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qversiontagging.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstring.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qchar.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbytearray.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qrefcount.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qarraydata.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringliteral.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringview.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qlist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qalgorithms.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qiterator.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qpair.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qvector.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qpoint.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringlist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qregexp.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcoreevent.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qmetatype.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobject_impl.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbusglobal.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbus-config.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdevice.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusframe.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdeviceinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qshareddata.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qhash.h \
+		moc_predefs.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/moc
+	/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/bin/moc $(DEFINES) --include /home/joelai/02_dev/qcan/comsvc/moc_predefs.h -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/mkspecs/linux-g++ -I/home/joelai/02_dev/qcan/comsvc -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus -I/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore -I/usr/include/c++/7 -I/usr/include/x86_64-linux-gnu/c++/7 -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-linux-gnu/7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include CanbusServer.h -o moc_CanbusServer.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -848,6 +922,13 @@ main.o: main.cpp /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QCor
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/qserialportglobal.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/QSerialPortInfo \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialPort/qserialportinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/QCanBus \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbus.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbusglobal.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbus-config.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdevice.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusframe.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdeviceinfo.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QCommandLineParser \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcommandlineparser.h \
 		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcommandlineoption.h \
@@ -932,8 +1013,91 @@ SerialPortServer.o: SerialPortServer.cpp /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gc
 		SerialPortServer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o SerialPortServer.o SerialPortServer.cpp
 
+CanbusServer.o: CanbusServer.cpp /mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QCoreApplication \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcoreapplication.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qglobal.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qconfig.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qtcore-config.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsystemdetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qprocessordetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcompilerdetection.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qtypeinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsysinfo.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qlogging.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qflags.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbasicatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qgenericatomic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qatomic_msvc.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qglobalstatic.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qmutex.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qnumeric.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qversiontagging.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstring.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qchar.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbytearray.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qrefcount.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qnamespace.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qarraydata.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringliteral.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringalgorithms.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringview.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringbuilder.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobject.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobjectdefs.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qlist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qalgorithms.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qiterator.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qhashfunctions.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qpair.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qvector.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qpoint.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qbytearraylist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringlist.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qregexp.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qstringmatcher.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcoreevent.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qscopedpointer.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qmetatype.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qvarlengtharray.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcontainerfwd.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qobject_impl.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qeventloop.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QByteArray \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QtDebug \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qdebug.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qhash.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qmap.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qtextstream.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qiodevice.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qlocale.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qvariant.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qshareddata.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qset.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qcontiguouscache.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsharedpointer.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QStringList \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtCore/QIODevice \
+		CanbusServer.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/QCanBus \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbus.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbusglobal.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qtserialbus-config.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdevice.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusframe.h \
+		/mnt/hd_dc/07_sw/pkg/qt5.13.0/5.13.0/gcc_64/include/QtSerialBus/qcanbusdeviceinfo.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o CanbusServer.o CanbusServer.cpp
+
 moc_SerialPortServer.o: moc_SerialPortServer.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_SerialPortServer.o moc_SerialPortServer.cpp
+
+moc_CanbusServer.o: moc_CanbusServer.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_CanbusServer.o moc_CanbusServer.cpp
 
 ####### Install
 

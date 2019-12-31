@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QCanBus>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QtDebug>
@@ -61,6 +62,17 @@ int main(int argc, char *argv[]) {
 			}
             stdOut << msg << endl;
 		}
+
+		QStringList canbusIfceNames = QCanBus::instance()->plugins();
+		QString indent1 = "";
+		for (int i = 0; i < canbusIfceNames.size(); i++) {
+			QString ifceName = canbusIfceNames.at(i);
+            stdOut << indent1 << ifceName << endl;
+
+
+
+		}
+
 		return 1;
 	}
 

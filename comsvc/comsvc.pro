@@ -1,6 +1,7 @@
 QT -= gui
 
 QT += serialport
+QT += serialbus
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -17,11 +18,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 HEADERS += \
-    SerialPortServer.h
+    SerialPortServer.h \
+    CanbusServer.h
 
 SOURCES += \
-        main.cpp \
-        SerialPortServer.cpp
+    main.cpp \
+    SerialPortServer.cpp \
+    CanbusServer.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
