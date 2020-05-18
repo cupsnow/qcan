@@ -1,4 +1,8 @@
 #include <QCoreApplication>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSysInfo>
 #include <QByteArray>
 #include <QTextStream>
 #include <QStringList>
@@ -12,8 +16,9 @@
 #include "SerialPortServer.h"
 
 static QTextStream stdOut(stdout);
+static QJsonObject cfg;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {    
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName("comsvc");
 	QCoreApplication::setApplicationVersion("1.0");
@@ -24,7 +29,11 @@ int main(int argc, char *argv[]) {
 	const QCommandLineOption helpOption = cliParser.addHelpOption();
 	const QCommandLineOption versionOption = cliParser.addVersionOption();
 
-	const QCommandLineOption listSerialPortOption(QStringList() << "l" << "list",
+    const QCommandLineOption jsonCfgOption(QStringList() << "c" << "cfg",
+            QCoreApplication::translate("main", "JSON configuration file."));
+    cliParser.addOption(jsonCfgOption);
+
+    const QCommandLineOption listSerialPortOption(QStringList() << "l" << "list",
 			QCoreApplication::translate("main", "List available serial port."));
 	cliParser.addOption(listSerialPortOption);
 
@@ -49,6 +58,35 @@ int main(int argc, char *argv[]) {
 	cliParser.addOption(bindWSOption);
 
 	cliParser.process(app);
+
+    do {
+        QFile cfgFile(":/cfg/defaultCfg.json");
+
+        if (!cfgFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qWarning() << QCoreApplication::translate("main", "Failed to load default config.") << endl;
+            break;
+        }
+
+        QJsonParseError parseErr;
+        QJsonDocument cfgDoc = QJsonDocument::fromJson(cfgFile.readAll(), &parseErr);
+        if (cfgDoc.isNull()) {
+            qWarning() << QCoreApplication::translate("main", "Empty default config.") <<
+                          QString(" (%1)").arg(parseErr.errorString()) << endl;
+            break;
+        }
+
+        cfg = cfgDoc.object();
+
+    } while(0);
+
+    for (QJsonObject::iterator iter = cfg.begin(); iter != cfg.end(); ++iter) {
+        stdOut << "key: " << iter.key() << endl;
+    }
+
+    QString jsonCfg = cliParser.value(jsonCfgOption);
+    if (!jsonCfg.isEmpty()) {
+
+    }
 
 	if (cliParser.isSet(listSerialPortOption)) {
 		const QList<QSerialPortInfo> serialPorts =
