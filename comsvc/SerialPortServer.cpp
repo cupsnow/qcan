@@ -10,8 +10,14 @@
 #include <QStringList>
 #include <QSerialPort>
 #include <QIODevice>
+#include <cstdio>
 
 #include "SerialPortServer.h"
+#include "CanbusCfg.h"
+
+static QTextStream stdOut(stdout);
+static QString indent = "  ";
+static CanbusCfg &cfg = CanbusCfg::instance();
 
 static QString portNameFromSystemLocation(const QString &source) {
     return source.startsWith(QLatin1String("/dev/")) ? source.mid(5) :

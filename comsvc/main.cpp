@@ -1,7 +1,6 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QJsonDocument>
-#include <QJsonObject>
 #include <QSysInfo>
 #include <QByteArray>
 #include <QTextStream>
@@ -13,12 +12,20 @@
 #include <QCommandLineOption>
 #include <QtDebug>
 #include <cstdio>
+
 #include "SerialPortServer.h"
+#include "CanbusCfg.h"
 
 static QTextStream stdOut(stdout);
-static QJsonObject cfg;
+static QString indent = "  ";
+static CanbusCfg &cfg = CanbusCfg::instance();
 
-int main(int argc, char *argv[]) {    
+static QString indents(QString indent, int level = 1) {
+    if (level > 1) return indent + indents(indent, level - 1);
+    return indent;
+}
+
+int main(int argc, char *argv[]) {
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName("comsvc");
 	QCoreApplication::setApplicationVersion("1.0");
@@ -30,7 +37,8 @@ int main(int argc, char *argv[]) {
 	const QCommandLineOption versionOption = cliParser.addVersionOption();
 
     const QCommandLineOption jsonCfgOption(QStringList() << "c" << "cfg",
-            QCoreApplication::translate("main", "JSON configuration file."));
+            QCoreApplication::translate("main", "JSON configuration file."),
+            QCoreApplication::translate("main", "CFG-FILE"));
     cliParser.addOption(jsonCfgOption);
 
     const QCommandLineOption listSerialPortOption(QStringList() << "l" << "list",
@@ -60,7 +68,10 @@ int main(int argc, char *argv[]) {
 	cliParser.process(app);
 
     do {
-        QFile cfgFile(":/cfg/defaultCfg.json");
+        QString jsonCfg = cliParser.value(jsonCfgOption);
+        if (jsonCfg.isEmpty()) break;
+
+        QFile cfgFile(jsonCfg);
 
         if (!cfgFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
             qWarning() << QCoreApplication::translate("main", "Failed to load default config.") << endl;
@@ -75,38 +86,38 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        cfg = cfgDoc.object();
+        cfg.json = cfgDoc.object();
 
     } while(0);
 
-    for (QJsonObject::iterator iter = cfg.begin(); iter != cfg.end(); ++iter) {
+    for (QJsonObject::iterator iter = cfg.json.begin(); iter != cfg.json.end(); ++iter) {
         stdOut << "key: " << iter.key() << endl;
     }
 
-    QString jsonCfg = cliParser.value(jsonCfgOption);
-    if (!jsonCfg.isEmpty()) {
-
-    }
-
 	if (cliParser.isSet(listSerialPortOption)) {
+        int indentLevel = 1;
+
 		const QList<QSerialPortInfo> serialPorts =
 				QSerialPortInfo::availablePorts();
+        stdOut << QCoreApplication::translate("main", "Serial port:") << endl;
 		for (int i = 0; i < serialPorts.size(); i++) {
 			QSerialPortInfo serialPort = serialPorts.at(i);
 			QString msg = serialPort.systemLocation();
 			if (serialPort.isBusy()) {
 				msg += QCoreApplication::translate("main", "(Busy)");
 			}
-            stdOut << msg << endl;
+            stdOut << indents(indent, indentLevel) << msg << endl;
 		}
 
+        stdOut << endl << QCoreApplication::translate("main", "CAN bus list:") << endl;
         QStringList canbusPlugins = QCanBus::instance()->plugins();
         for (int i = 0; i < canbusPlugins.size(); i++) {
             QString plugin = canbusPlugins.at(i);
-            stdOut << plugin << endl;
+            stdOut << indents(indent, indentLevel) << plugin << endl;
             const QList<QCanBusDeviceInfo> canbusDevs =
                     QCanBus::instance()->availableDevices(plugin);
             if (canbusDevs.empty()) continue;
+            indentLevel++;
             for (int j = 0; j < canbusDevs.size(); j++) {
                 QCanBusDeviceInfo canbus = canbusDevs.at(j);
                 QString msg = canbus.name();
@@ -114,10 +125,10 @@ int main(int argc, char *argv[]) {
                 if (canbus.hasFlexibleDataRate()) msg += ", CanFD";
                 if (canbus.isVirtual()) msg += ", Virtual";
                 if (!canbus.serialNumber().isEmpty()) msg += ", SN: " + canbus.serialNumber();
-                stdOut << "  " << msg << endl;
+                stdOut << indents(indent, indentLevel) << msg << endl;
             }
-
-		}
+            indentLevel--;
+        }
 
 		return 1;
 	}
